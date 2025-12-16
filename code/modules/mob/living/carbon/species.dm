@@ -125,7 +125,7 @@ var/global/list/playable_species = list("Human")
 	var/wear_mask_icons     = 'icons/mob/mask.dmi'
 	var/back_icons          = 'icons/mob/back.dmi'
 	var/id_icons            = 'icons/mob/ids.dmi'
-
+	var/accessory_icons		= 'icons/mob/clothing_accessories.dmi'
 
 	//Used in icon caching.
 	var/race_key = 0
@@ -157,6 +157,8 @@ var/global/list/playable_species = list("Human")
 	var/monkey_anim = "h2monkey" // Animation from monkeyisation.
 
 	var/datum/speech_filter/speech_filter
+
+	var/list/damage_overlays = list("brute", "burn") //What damage overlays will be rendered on the species when harmed
 
 /datum/species/New()
 	..()
@@ -236,8 +238,8 @@ var/global/list/playable_species = list("Human")
 	H.organs_by_name[LIMB_RIGHT_ARM] = new/datum/organ/external/r_arm(H.organs_by_name[LIMB_CHEST])
 	H.organs_by_name[LIMB_RIGHT_LEG] = new/datum/organ/external/r_leg(H.organs_by_name[LIMB_GROIN])
 	H.organs_by_name[LIMB_LEFT_LEG] = new/datum/organ/external/l_leg(H.organs_by_name[LIMB_GROIN])
-	H.organs_by_name[LIMB_LEFT_HAND] = new/datum/organ/external/l_hand(H.organs_by_name[LIMB_LEFT_ARM])
-	H.organs_by_name[LIMB_RIGHT_HAND] = new/datum/organ/external/r_hand(H.organs_by_name[LIMB_RIGHT_ARM])
+	H.organs_by_name[LIMB_LEFT_HAND] = new/datum/organ/external/hand/l_hand(H.organs_by_name[LIMB_LEFT_ARM])
+	H.organs_by_name[LIMB_RIGHT_HAND] = new/datum/organ/external/hand/r_hand(H.organs_by_name[LIMB_RIGHT_ARM])
 	H.organs_by_name[LIMB_LEFT_FOOT] = new/datum/organ/external/l_foot(H.organs_by_name[LIMB_LEFT_LEG])
 	H.organs_by_name[LIMB_RIGHT_FOOT] = new/datum/organ/external/r_foot(H.organs_by_name[LIMB_RIGHT_LEG])
 
@@ -337,6 +339,9 @@ var/global/list/playable_species = list("Human")
 
 /datum/species/proc/conditional_playable()
 	return 0
+
+/datum/species/proc/fallback()
+	return "Human"
 
 /datum/species/human
 	name = "Human"
@@ -457,11 +462,14 @@ var/global/list/playable_species = list("Human")
 					You have no skin, no blood, no lips, and only just enough brain to function.<br>\
 					You can not eat normally, as your necrotic state only permits you to only eat raw flesh. As you lack skin, you can not be injected via syringe.<br>\
 					You are also incredibly weak to brute damage, but you're fast and don't need to breathe, so that's going for you."
+	damage_overlays = list()
 
 /datum/species/skellington/conditional_playable()
 	var/MM = text2num(time2text(world.timeofday, "MM"))
 	return MM == 10 //October
 
+/datum/species/skellington/fallback()
+	return "Plasmaman"
 
 /datum/species/skellington/handle_speech(var/datum/speech/speech, mob/living/carbon/human/H)
 	if (prob(25))
@@ -872,7 +880,7 @@ var/list/has_died_as_golem = list()
 /mob/living/adamantine_dust/attackby(obj/item/I, mob/user)
 	if(istype(I, /obj/item/slime_extract/adamantine))
 		var/obj/item/slime_extract/adamantine/A = I
-		if(A.Uses)
+		if(A.uses)
 			if(!mind)
 				to_chat(user, "<span class='warning'>You press \the [A] into \the [src], but nothing happens.</span>")
 			else
@@ -980,8 +988,7 @@ var/list/has_died_as_golem = list()
 
 /datum/species/slime/handle_death(var/mob/living/carbon/human/H, gibbed) //Handles any species-specific death events (such as dionaea nymph spawns).
 	H.dropBorers(gibbed)
-	for(var/atom/movable/I in H.contents)
-		I.forceMove(H.loc)
+	H.unequip_everything()
 	anim(target = H, a_icon = 'icons/mob/mob.dmi', flick_anim = "liquify", sleeptime = 15)
 	if(!gibbed)
 		handle_slime_puddle(H)
@@ -1117,6 +1124,7 @@ var/list/has_died_as_golem = list()
 //	belt_icons      = 'icons/mob/belt.dmi'
 	wear_suit_icons = 'icons/mob/species/insectoid/suit.dmi'
 	wear_mask_icons = 'icons/mob/species/insectoid/mask.dmi'
+	accessory_icons = 'icons/mob/species/insectoid/clothing_accessories.dmi'
 //	back_icons      = 'icons/mob/back.dmi'
 
 
@@ -1273,6 +1281,7 @@ var/list/has_died_as_golem = list()
 					A more refined version of the skellington, you're not as brittle, but not quite as fast.<br>\
 					You have no skin, no blood, and only a brain to guide you.<br>\
 					You can not eat normally, as your necrotic state permits you to only eat raw flesh. As you lack skin, you can not be injected via syringe."
+	damage_overlays = list()
 
 /datum/species/lich/gib(mob/living/carbon/human/H)
 	..()

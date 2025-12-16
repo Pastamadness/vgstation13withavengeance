@@ -535,11 +535,8 @@
 			Paralyse(5)
 
 	remove_confused(1)
-	// decrement dizziness counter, clamped to 0
-	if(resting)
-		dizziness = max(0, dizziness - 5)
-	else
-		dizziness = max(0, dizziness - 1)
+	handle_dizziness()
+	handle_jitteriness()
 
 	updatehealth()
 	return //TODO: DEFERRED
@@ -729,10 +726,10 @@
 			overlay_fullscreen("blurry", /obj/abstract/screen/fullscreen/blurry)
 		else
 			clear_fullscreen("blurry")
-		if (src.druggy)
-			overlay_fullscreen("high", /obj/abstract/screen/fullscreen/high)
+		if(druggy)
+			enable_druggy_overlays()
 		else
-			clear_fullscreen("high")
+			disable_druggy_overlays()
 
 	if (stat != 2)
 		if (machine)
@@ -749,6 +746,23 @@
 		spawn(0)
 			emote("scratch")
 			return
+
+/**
+ * Returns a number between -2 to 2.
+ * TODO: What's the default return value?
+ */
+/mob/living/carbon/monkey/eyecheck()
+	. = 0
+	var/obj/item/clothing/head/headwear = src.hat
+	var/obj/item/clothing/glasses/eyewear = src.glasses
+
+	if (istype(headwear))
+		. += headwear.eyeprot
+
+	if (istype(eyewear))
+		. += eyewear.eyeprot
+
+	return clamp(., -2, 2)
 
 ///FIRE CODE
 /mob/living/carbon/monkey/handle_fire()
